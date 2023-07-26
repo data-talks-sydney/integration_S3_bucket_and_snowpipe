@@ -1,9 +1,10 @@
-# Configure Cloud Storage S3 and Permissions
+# Integration between Snowflake and an S3 Bucket through Snowpipe 
 
 The integration between Snowflake and an S3 bucket using Snowpipe is a way to automatically and continuously load data from AWS cloud storage into the Snowflake database. Snowpipe utilizes S3 event notifications to trigger the data loading process in micro-batches, eliminating the need to schedule or manually execute COPY commands. To set up this integration, follow these steps:
 
+## Configure Cloud Storage S3 and Permissions
 
-## Create AWS S3 Bucket
+### Create AWS S3 Bucket
 
 1. Sign in to the AWS Management Console and open the Amazon S3 console.
 2. In the left navigation pane, choose **Buckets** and than choose **Create bucket**.
@@ -14,7 +15,7 @@ The integration between Snowflake and an S3 bucket using Snowpipe is a way to au
 
 You've created a bucket in Amazon S3.
 
-## Create IAM Policy for Snowflake's S3 Access
+### Create IAM Policy for Snowflake's S3 Access
 
 Snowflake needs IAM policy permission to access your S3 with `GetObject`, `GetObjectVersion`, and `ListBucket`. Log into
 your AWS console and navigate to **Policies** and use the JSON below to create a new IAM policy named *snowflake_access*.
@@ -54,7 +55,7 @@ your AWS console and navigate to **Policies** and use the JSON below to create a
 ```
 >Make sure to replace `bucket` and `prefix` with your actual bucket name and folder path prefix.
 
-## New IAM Role
+### New IAM Role
 
 On the AWS IAM console, add a new IAM role tied to the *snowflake_access* IAM policy. 
 Create the role with the following settings.
@@ -69,7 +70,7 @@ Create the role with the following settings.
 
 Create the role, then click to see the role's summary and record the Role ARN.
 
-## Integrate IAM user with Snowflake storage.
+### Integrate IAM user with Snowflake storage.
 
 Within your Snowflake web console, you'll run a `CREATE STORAGE INTEGRATION` command on a worksheet.
 
@@ -84,7 +85,7 @@ CREATE OR REPLACE STORAGE INTEGRATION S3_role_integration
 >Be sure to change the `<bucket>`, `<path>` and `<role_account_id>` is replaced with your AWS S3 bucket name, folder 
 >path prefix, and IAM role account ID.
 
-### Run storage integration description command
+#### Run storage integration description command
 
 Run the command to display your new integration's description.
 
@@ -93,7 +94,7 @@ desc integration S3_role_integration;
 ```
 Record the property values displayed for `STORAGE_AWS_IAM_USER_ARN` and `STORAGE_AWS_EXTERNAL_ID`
 
-## IAM User Permissions
+### IAM User Permissions
 
 Navigate back to your AWS IAM service console. Within the **Roles**, click the *snowflake_role*. On the 
 **Trust relationships** tab, click **Edit trust policy** and edit the file with the `STORAGE_AWS_IAM_USER_ARN` and 
@@ -121,7 +122,7 @@ Navigate back to your AWS IAM service console. Within the **Roles**, click the *
 Click **Update Policy**
 
 
-# Create a pipe in Snowflake
+## Create a pipe in Snowflake
 
 Now that your AWS and Snowflake accounts have the right security conditions, complete Snowpipe 
 setup with S3 event notifications.
@@ -170,7 +171,7 @@ create or replace pipe S3_db.public.S3_pipe auto_ingest=true as
 show pipes;
 ```
 
-### Check the Pipe status and copy the "notificationChannelName" for the AWS SQS
+#### Check the Pipe status and copy the "notificationChannelName" for the AWS SQS
 
 ```snowflake
 select SYSTEM$PIPE_STATUS('S3_db.public.S3_pipe');
